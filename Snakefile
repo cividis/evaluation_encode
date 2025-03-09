@@ -8,6 +8,8 @@ df = (
     .query(
         "(`Assay` in ['ATAC-seq', 'TF ChIP-seq']) or (`Assay` == 'Histone ChIP-seq' and `Experiment target`.str.startswith('H3K27ac'))",
     )
+    .query("`Biosample treatments`.isnull()")
+    .query("`Biosample genetic modifications methods`.isnull()")
 )
 experiments = df["File accession"].tolist()
 
@@ -24,11 +26,12 @@ rule download_experiment:
     run:
         download_encode(wildcards.experiment, output[0])
 
+
 rule extract_features_test:
     input:
         "downloads/{experiment}.bed",
     output:
-        "tmp/{experiment}.done",  
+        "tmp/{experiment}.done",
     run:
         from pathlib import Path
         from tfsage.features import extract_features
@@ -36,6 +39,7 @@ rule extract_features_test:
         gene_loc_set = load_region_set("hg38")
         df = extract_features(input[0], gene_loc_set)
         Path(output[0]).touch()
+
 
 rule extract_features:
     input:
