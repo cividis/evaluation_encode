@@ -19,14 +19,14 @@ rule all:
 
 rule download_experiment:
     output:
-        "work/experiments/{experiment}.bed",
+        "downloads/{experiment}.bed",
     run:
         download_encode(wildcards.experiment, output[0])
 
 
 rule extract_features:
     input:
-        expand("work/experiments/{experiment}.bed", experiment=experiments),
+        expand("downloads/{experiment}.bed", experiment=experiments),
     output:
         "data/rp_matrix.parquet",
     run:

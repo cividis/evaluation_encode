@@ -138,5 +138,6 @@ dmypy.json
 
 # Data/downloads
 data/
+downloads/
 work/
 .snakemake/
