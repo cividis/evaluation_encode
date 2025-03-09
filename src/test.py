@@ -1,12 +1,9 @@
-import pandas as pd
+from tfsage.features import extract_features, load_region_set, prepare_region_set
 
-df = pd.read_csv("metadata/metadata.tsv", sep="\t")
-df.query("`File format` == 'bed narrowPeak'", inplace=True)
-df.query(
-    "(`Assay` in ['ATAC-seq', 'TF ChIP-seq']) or (`Assay` == 'Histone ChIP-seq' and `Experiment target`.str.startswith('H3K27ac'))",
-    inplace=True,
-)
-experiments = df["File accession"].tolist()
-print(experiments)
+gene_loc_set = load_region_set("hg38")
+bed_file = "downloads/ENCFF624NUZ.bed"
+region_set = prepare_region_set(bed_file, gene_loc_set.genome)
 
-print(df["Assay"].value_counts())
+
+features = extract_features(bed_file, gene_loc_set)
+print(features)
