@@ -8,8 +8,6 @@ df = (
     .query(
         "(`Assay` in ['ATAC-seq', 'TF ChIP-seq']) or (`Assay` == 'Histone ChIP-seq' and `Experiment target`.str.startswith('H3K27ac'))",
     )
-    .query("`Biosample treatments`.isnull()")
-    .query("`Biosample genetic modifications methods`.isnull()")
 )
 experiments = df["File accession"].tolist()
 
@@ -31,6 +29,9 @@ rule extract_features:
         expand("downloads/{experiment}.bed", experiment=experiments),
     output:
         "data/rp_matrix.parquet",
+    threads: 48
+    resources:
+        mem_mb=96000,
     run:
         from pathlib import Path
 
