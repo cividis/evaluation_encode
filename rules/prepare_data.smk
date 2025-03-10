@@ -2,14 +2,8 @@ import pandas as pd
 from tfsage.download import download_encode
 from tfsage.features import extract_features_parallel, load_region_set
 
-df = (
-    pd.read_csv("metadata/metadata.tsv", sep="\t")
-    .query("`File format` == 'bed narrowPeak'")
-    .query(
-        "(`Assay` in ['ATAC-seq', 'TF ChIP-seq']) or (`Assay` == 'Histone ChIP-seq' and `Experiment target`.str.startswith('H3K27ac'))",
-    )
-)
-experiments = df["File accession"].tolist()
+df = pd.read_parquet("data/metadata.parquet")
+experiments = df.index.tolist()
 
 
 rule download_experiment:
