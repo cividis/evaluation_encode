@@ -9,6 +9,7 @@ from tfsage.embedding import run_seurat_integration, compute_distances
 rule download_experiment:
     output:
         "downloads/{experiment}.bed",
+    retries: 5
     run:
         download_encode(wildcards.experiment, output[0])
 
@@ -85,15 +86,16 @@ rule embed_and_integrate:
         run_seurat_integration(input[0], input[1], output[0], "Assay", params.methods)
 
 
-rule compute_distances:
+rule compute_pairwse_distances:
     input:
-        "data/embeddings_{suffix}/{method}.parquet",
+        "data/embeddings_{suffix}",
     output:
         directory("data/distances_{suffix}/{method}"),
     params:
-        distance_metrics=["euclidean", "correlation", "cosine"],
+        distance_metrics=["euclidean", "cosine", "correlation"],
     run:
-        input_file = f"{input[0]}/{method}.parquet"
+        os.makedirs(output[0], exist_ok=True)
+        input_file = f"{input[0]}/{wildcards.method}.parquet"
         df = pd.read_parquet(input_file)
         df.set_index("__index_level_0__", inplace=True)
         for metric in params.distance_metrics:

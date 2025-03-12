@@ -4,10 +4,14 @@ include: "rules/prepare_data.smk"
 rule all:
     input:
         expand(
-            "data/rp_matrix_{suffix}.parquet",
+            "data/distances_{suffix}/{method}",
             suffix=["tss", "gene"],
-        ),
-        expand(
-            "data/embeddings_{suffix}",
-            suffix=["tss", "gene"],
+            method=[
+                "CCAIntegration",
+                "HarmonyIntegration",
+                "JointPCAIntegration",
+                "RPCAIntegration",
+                "FastMNNIntegration",
+                "none",
+            ],
         ),
