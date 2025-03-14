@@ -1,10 +1,13 @@
+configfile: "config/config.yaml"
+
+
 include: "rules/prepare_data.smk"
 
 
 rule all:
     input:
         expand(
-            "data/distances_{suffix}/{method}",
+            config["results_dir"] + "data/distances_{suffix}/{method}",
             suffix=["tss", "gene"],
             method=[
                 "CCAIntegration",

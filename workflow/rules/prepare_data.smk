@@ -1,14 +1,11 @@
-import os
 import pandas as pd
-from pathlib import Path
 from tfsage.download import download_encode
-from tfsage.features import extract_features_parallel, load_region_set
-from tfsage.embedding import run_seurat_integration, compute_distances
+from tfsage.embedding import run_seurat_integration
 
 
 rule download_experiment:
     output:
-        "downloads/{experiment}.bed",
+        config["results_dir"] + "downloads/{experiment}.bed",
     retries: 5
     run:
         download_encode(wildcards.experiment, output[0])
@@ -16,63 +13,48 @@ rule download_experiment:
 
 checkpoint prepare_metadata:
     params:
-        input_file="metadata/metadata.tsv",
+        input_file=config["encode_metadata"],
     output:
-        "data/metadata.parquet",
-    run:
-        df = (
-            pd.read_csv(params.input_file, sep="\t")
-            .query("`File format` == 'bed narrowPeak'")
-            .query(
-                "(`Assay` in ['ATAC-seq', 'TF ChIP-seq']) or (`Assay` == 'Histone ChIP-seq' and `Experiment target`.str.startswith('H3K27ac'))",
-            )
-        )
-        df.set_index("File accession", inplace=True)
-        df.index.name = None
-        df.sort_values("Assay", inplace=True)
-        df.to_parquet(output[0])
+        config["results_dir"] + "data/metadata.parquet",
+    script:
+        "../scripts/prepare_metadata.py"
 
 
 def aggregate_input(wildcards):
     df = pd.read_parquet(checkpoints.prepare_metadata.get().output[0])
     experiments = df.index.tolist()
-    return expand("downloads/{experiment}.bed", experiment=experiments)
+    return expand(
+        config["results_dir"] + "downloads/{experiment}.bed", experiment=experiments
+    )
 
 
 rule extract_features:
     input:
         aggregate_input,
     output:
-        "data/rp_matrix_tss.parquet",
+        config["results_dir"] + "data/rp_matrix_tss.parquet",
     threads: 48
     resources:
         mem_mb=96000,
-    run:
-        gene_loc_set = load_region_set("hg38")
-        df = extract_features_parallel(input, gene_loc_set, max_workers=threads)
-        df.columns = [f"{Path(f).stem}" for f in input]
-        df.to_parquet(output[0])
+    script:
+        "../scripts/extract_features.py"
 
 
 rule aggregate_genes:
     input:
-        "data/rp_matrix_tss.parquet",
+        config["results_dir"] + "data/rp_matrix_tss.parquet",
     output:
-        "data/rp_matrix_gene.parquet",
-    run:
-        df = pd.read_parquet(input[0])
-        df["gene"] = df.index.str.split(":").str[1]
-        df = df.groupby("gene").mean()
-        df.index.name = None
-        df.to_parquet(output[0])
+        config["results_dir"] + "data/rp_matrix_gene.parquet",
+    script:
+        "../scripts/aggregate_genes.py"
 
 
 rule embed_and_integrate:
     input:
-        "data/rp_matrix_{suffix}.parquet",
-        "data/metadata.parquet",
+        config["results_dir"] + "data/rp_matrix_{suffix}.parquet",
+        config["results_dir"] + "data/metadata.parquet",
     output:
-        directory("data/embeddings_{suffix}"),
+        directory(config["results_dir"] + "data/embeddings_{suffix}"),
     params:
         methods=[
             "CCAIntegration",
@@ -86,19 +68,12 @@ rule embed_and_integrate:
         run_seurat_integration(input[0], input[1], output[0], "Assay", params.methods)
 
 
-rule compute_pairwse_distances:
+rule pairwise_distances:
     input:
-        "data/embeddings_{suffix}",
+        config["results_dir"] + "data/embeddings_{suffix}",
     output:
-        directory("data/distances_{suffix}/{method}"),
+        directory(config["results_dir"] + "data/distances_{suffix}/{method}"),
     params:
         distance_metrics=["euclidean", "cosine", "correlation"],
-    run:
-        os.makedirs(output[0], exist_ok=True)
-        input_file = f"{input[0]}/{wildcards.method}.parquet"
-        df = pd.read_parquet(input_file)
-        df.set_index("__index_level_0__", inplace=True)
-        for metric in params.distance_metrics:
-            output_file = f"{output[0]}/{metric}.parquet"
-            distances = compute_distances(df, metric)
-            distances.to_parquet(output_file)
+    script:
+        "../scripts/pairwise_distances.py"

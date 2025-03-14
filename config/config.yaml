@@ -1,0 +1,2 @@
+results_dir: "results/"
+encode_metadata: "resources/metadata.tsv"

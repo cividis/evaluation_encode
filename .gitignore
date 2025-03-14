@@ -137,8 +137,5 @@ dmypy.json
 .DS_Store
 
 # Data/downloads
-data/
-downloads/
-work/
-tmp/
+results/
 .snakemake/
