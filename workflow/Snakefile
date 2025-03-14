@@ -1,7 +1,14 @@
+import pandas as pd
+
+
 configfile: "config/config.yaml"
 
 
 include: "rules/prepare_data.smk"
+include: "rules/motif_scan.smk"
+
+
+query_experiments = pd.read_csv(config["benchmark_set"])["index_query"].unique()
 
 
 rule all:
@@ -17,4 +24,8 @@ rule all:
                 "FastMNNIntegration",
                 "none",
             ],
+        ),
+        expand(
+            config["results_dir"] + "motif_scan/{experiment}.bed",
+            experiment=query_experiments,
         ),

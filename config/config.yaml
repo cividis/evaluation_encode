@@ -1,2 +1,3 @@
 results_dir: "results/"
 encode_metadata: "resources/metadata.tsv"
+benchmark_set: "resources/benchmark_set.csv"
