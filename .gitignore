@@ -139,3 +139,5 @@ dmypy.json
 # Data/downloads
 results/
 .snakemake/
+resources/motif_databases/
+test.py

@@ -56,14 +56,7 @@ rule embed_and_integrate:
     output:
         directory(config["results_dir"] + "data/embeddings_{suffix}"),
     params:
-        methods=[
-            "CCAIntegration",
-            "HarmonyIntegration",
-            "JointPCAIntegration",
-            "RPCAIntegration",
-            "FastMNNIntegration",
-            "none",
-        ],
+        methods=config["methods"],
     run:
         run_seurat_integration(input[0], input[1], output[0], "Assay", params.methods)
 

@@ -1,3 +1,17 @@
 results_dir: "results/"
 encode_metadata: "resources/metadata.tsv"
 benchmark_set: "resources/benchmark_set.csv"
+
+methods:
+  - CCAIntegration
+  - HarmonyIntegration
+  - JointPCAIntegration
+  - RPCAIntegration
+  - FastMNNIntegration
+  - none
+
+motif_dbs:
+  - HOCOMOCOv11_HUMAN
+  - JASPAR2020_vertebrates
+  - CIS-BP
+  - gimme.vertebrate.v5.0

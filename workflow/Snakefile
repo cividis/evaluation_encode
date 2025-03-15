@@ -16,16 +16,10 @@ rule all:
         expand(
             config["results_dir"] + "data/distances_{suffix}/{method}",
             suffix=["tss", "gene"],
-            method=[
-                "CCAIntegration",
-                "HarmonyIntegration",
-                "JointPCAIntegration",
-                "RPCAIntegration",
-                "FastMNNIntegration",
-                "none",
-            ],
+            method=config["methods"],
         ),
         expand(
-            config["results_dir"] + "motif_scan/{experiment}.bed",
+            config["results_dir"] + "motif_scan/{motif_db}/{experiment}.bed",
             experiment=query_experiments,
+            motif_db=config["motif_dbs"],
         ),
