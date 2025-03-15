@@ -31,7 +31,8 @@ def filter_pfm(pfm_path, motif_list):
     lines = []
     for line in tqdm(pfm_lines):
         if line.startswith(">"):
-            include = any(motif in line for motif in motif_list)
+            this_motif = line.replace(">", "").strip()
+            include = any(this_motif == motif for motif in motif_list)
         if include or line.startswith("#"):
             lines.append(line)
 
