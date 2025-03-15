@@ -20,23 +20,22 @@ def filter_motifs(
     # Save filtered motif2factors and PFM
     motif_db.to_csv(motif2factors_path_out, sep="\t", index=False)
     with open(pfm_path_out, "w") as f:
-        f.write(pfm_filtered)
+        f.writelines(pfm_filtered)
 
 
 def filter_pfm(pfm_path, motif_list):
     with open(pfm_path, "r") as f:
-        pfm_master = f.read()
+        pfm_lines = f.readlines()
 
     include = False
     lines = []
-    for line in tqdm(pfm_master.split("\n")):
+    for line in tqdm(pfm_lines):
         if line.startswith(">"):
             include = any(motif in line for motif in motif_list)
         if include or line.startswith("#"):
             lines.append(line)
 
-    pfm_filtered = "\n".join(lines)
-    return pfm_filtered
+    return lines
 
 
 filter_motifs(
