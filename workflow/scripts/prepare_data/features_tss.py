@@ -1,7 +1,6 @@
-from snakemake.script import snakemake
-import pandas as pd
 from pathlib import Path
 from tfsage.features import extract_features_parallel, load_region_set
+from snakemake.script import snakemake
 
 
 def extract_features(bed_files, output_file, max_workers=None):
@@ -16,4 +15,4 @@ def extract_features(bed_files, output_file, max_workers=None):
     df.to_parquet(output_file)
 
 
-extract_features(snakemake.input, snakemake.output[0], max_workers=snakemake.threads)
+extract_features(snakemake.input, snakemake.output[0], snakemake.threads)

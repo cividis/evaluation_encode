@@ -17,7 +17,7 @@ rule filter_motifs:
             .tolist()
         ),
     script:
-        "../scripts/filter_motifs.py"
+        "../scripts/motif_scan/filter_motifs.py"
 
 
 rule motif_scan:
@@ -28,7 +28,7 @@ rule motif_scan:
         config["results_dir"] + "motif_scan/{motif_db}/{experiment}.bed",
     params:
         opts=lambda w, input: f"-g GRCh38 -p {input.pfm}",
-    threads: 12
+    threads: 24
     resources:
         mem_mb=24000,
     conda:

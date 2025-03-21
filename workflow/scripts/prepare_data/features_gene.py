@@ -1,5 +1,5 @@
-from snakemake.script import snakemake
 import pandas as pd
+from snakemake.script import snakemake
 
 
 def aggregate_genes(input_file, output_file):

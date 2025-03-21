@@ -3,7 +3,7 @@ from tfsage.download import download_encode
 from tfsage.embedding import run_seurat_integration
 
 
-rule download_experiment:
+rule download:
     output:
         config["results_dir"] + "downloads/{experiment}.bed",
     retries: 5
@@ -11,62 +11,66 @@ rule download_experiment:
         download_encode(wildcards.experiment, output[0])
 
 
-checkpoint prepare_metadata:
-    params:
-        input_file=config["encode_metadata"],
+checkpoint metadata:
+    input:
+        config["encode_metadata"],
     output:
         config["results_dir"] + "data/metadata.parquet",
     script:
-        "../scripts/prepare_metadata.py"
+        "../scripts/prepare_data/metadata.py"
 
 
-def aggregate_input(wildcards):
-    df = pd.read_parquet(checkpoints.prepare_metadata.get().output[0])
-    experiments = df.index.tolist()
-    return expand(
-        config["results_dir"] + "downloads/{experiment}.bed", experiment=experiments
-    )
+def all_experiments(wildcards):
+    experiments = pd.read_parquet(checkpoints.metadata.get().output[0]).index.tolist()
+    template = config["results_dir"] + "downloads/{experiment}.bed"
+    return expand(template, experiment=experiments)
 
 
-rule extract_features:
+rule features_tss:
     input:
-        aggregate_input,
+        all_experiments,
     output:
-        config["results_dir"] + "data/rp_matrix_tss.parquet",
+        config["results_dir"] + "data/rp_matrix/tss.parquet",
     threads: 48
     resources:
         mem_mb=96000,
     script:
-        "../scripts/extract_features.py"
+        "../scripts/prepare_data/features_tss.py"
 
 
-rule aggregate_genes:
+rule features_gene:
     input:
-        config["results_dir"] + "data/rp_matrix_tss.parquet",
+        config["results_dir"] + "data/rp_matrix/tss.parquet",
     output:
-        config["results_dir"] + "data/rp_matrix_gene.parquet",
+        config["results_dir"] + "data/rp_matrix/gene.parquet",
     script:
-        "../scripts/aggregate_genes.py"
+        "../scripts/prepare_data/features_gene.py"
 
 
-rule embed_and_integrate:
+rule embeddings:
     input:
-        config["results_dir"] + "data/rp_matrix_{suffix}.parquet",
-        config["results_dir"] + "data/metadata.parquet",
+        rp_matrix=config["results_dir"] + "data/rp_matrix/{features}.parquet",
+        metadata=config["results_dir"] + "data/metadata.parquet",
     output:
-        directory(config["results_dir"] + "data/embeddings_{suffix}"),
+        directory(config["results_dir"] + "data/embeddings/{features}"),
     params:
-        methods=config["methods"],
+        methods=config["embedding_methods"],
     run:
-        run_seurat_integration(input[0], input[1], output[0], "Assay", params.methods)
+        run_seurat_integration(
+            rp_matrix=input.rp_matrix,
+            metadata=input.metadata,
+            output_dir=output[0],
+            align_key="Assay",
+            methods=params.methods,
+        )
 
 
-rule pairwise_distances:
+rule distances:
     input:
-        config["results_dir"] + "data/embeddings_{suffix}",
+        config["results_dir"] + "data/embeddings/{features}",
     output:
-        directory(config["results_dir"] + "data/distances_{suffix}/{method}"),
+        directory(config["results_dir"] + "data/distances/{features}/{method}"),
     params:
-        distance_metrics=["euclidean", "cosine", "correlation"],
+        metrics=config["distance_metrics"],
     script:
-        "../scripts/pairwise_distances.py"
+        "../scripts/prepare_data/distances.py"

@@ -2,13 +2,17 @@ results_dir: "results/"
 encode_metadata: "resources/metadata.tsv"
 benchmark_set: "resources/benchmark_set.csv"
 
-methods:
+embedding_methods:
   - CCAIntegration
   - HarmonyIntegration
   - JointPCAIntegration
   - RPCAIntegration
   - FastMNNIntegration
   - none
+
+distance_metrics:
+  - euclidean
+  - cosine
 
 motif_dbs:
   - HOCOMOCOv11_HUMAN

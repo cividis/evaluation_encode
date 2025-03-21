@@ -1,5 +1,5 @@
-from snakemake.script import snakemake
 import pandas as pd
+from snakemake.script import snakemake
 
 
 def prepare_metadata(input_file, output_file):
@@ -19,4 +19,4 @@ def prepare_metadata(input_file, output_file):
     df.to_parquet(output_file)
 
 
-prepare_metadata(snakemake.params.input_file, snakemake.output[0])
+prepare_metadata(snakemake.input[0], snakemake.output[0])

@@ -6,6 +6,7 @@ configfile: "config/config.yaml"
 
 include: "rules/prepare_data.smk"
 include: "rules/motif_scan.smk"
+include: "rules/benchmark_search.smk"
 
 
 query_experiments = pd.read_csv(config["benchmark_set"])["index_query"].unique()
@@ -13,11 +14,7 @@ query_experiments = pd.read_csv(config["benchmark_set"])["index_query"].unique()
 
 rule all:
     input:
-        expand(
-            config["results_dir"] + "data/distances_{suffix}/{method}",
-            suffix=["tss", "gene"],
-            method=config["methods"],
-        ),
+        config["results_dir"] + "benchmark/search.csv",
         expand(
             config["results_dir"] + "motif_scan/{motif_db}/{experiment}.bed",
             experiment=query_experiments,

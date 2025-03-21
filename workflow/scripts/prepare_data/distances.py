@@ -1,10 +1,10 @@
 from snakemake.script import snakemake
 import os
 import pandas as pd
-from tfsage.embedding import compute_distances
+from tfsage import search
 
 
-def pairwise_distances(input_dir, output_dir, method, distance_metrics):
+def compute_distances(input_dir, output_dir, method, metrics):
     # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
@@ -14,15 +14,15 @@ def pairwise_distances(input_dir, output_dir, method, distance_metrics):
     df.set_index("__index_level_0__", inplace=True)
 
     # Compute and save distances for each metric
-    for metric in distance_metrics:
+    for metric in metrics:
         output_file = f"{output_dir}/{metric}.parquet"
-        distances = compute_distances(df, metric)
+        distances = search.compute_distances(df, metric)
         distances.to_parquet(output_file)
 
 
-pairwise_distances(
+compute_distances(
     snakemake.input[0],
     snakemake.output[0],
     snakemake.wildcards.method,
-    snakemake.params.distance_metrics,
+    snakemake.params.metrics,
 )
