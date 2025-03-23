@@ -21,10 +21,10 @@ def generate_test_set(
 generate_test_set(
     snakemake.input.query_file,
     snakemake.input.target_file,
-    snakemake.params.peak_width,
-    snakemake.params.blacklist_chroms,
-    snakemake.params.n_samples,
-    snakemake.params.p_positive,
-    snakemake.params.random_state,
+    snakemake.params.config_test_set.get("peak_width"),
+    snakemake.params.config_test_set.get("blacklist_chroms"),
+    snakemake.params.config_test_set.get("n_samples"),
+    snakemake.params.config_test_set.get("p_positive"),
+    snakemake.params.config_test_set.get("random_state"),
     snakemake.output[0],
 )
