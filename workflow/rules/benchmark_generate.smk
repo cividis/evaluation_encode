@@ -1,3 +1,8 @@
+import pandas as pd
+
+benchmark_df = pd.read_csv(config["benchmark_set"])
+
+
 rule synthesize_experiments:
     input:
         distances_dir=config["results_dir"] + "data/distances/gene/FastMNNIntegration",
@@ -59,3 +64,33 @@ rule compute_metrics_motif_scan:
         method_name="{motif_db}",
     script:
         "../scripts/benchmark_generate/compute_classification_metrics.py"
+
+
+rule aggregate_metrics_generate:
+    input:
+        all_tfsage=expand(
+            expand(
+                config["results_dir"]
+                + "benchmark/generate/metrics/tfsage/head_{n}/{{query_id}}_{{target_id}}_{{factor}}.json",
+                n=[1, 3, 7, 15],
+            ),
+            zip,
+            query_id=benchmark_df["index_query"],
+            target_id=benchmark_df["index_target"],
+            factor=benchmark_df["Experiment target"],
+        ),
+        all_motif_scan=expand(
+            expand(
+                config["results_dir"]
+                + "benchmark/generate/metrics/motif_scan/{motif_db}/{{query_id}}_{{target_id}}_{{factor}}.json",
+                motif_db=config["motif_dbs"],
+            ),
+            zip,
+            query_id=benchmark_df["index_query"],
+            target_id=benchmark_df["index_target"],
+            factor=benchmark_df["Experiment target"],
+        ),
+    output:
+        config["results_dir"] + "benchmark/generate.csv",
+    script:
+        "../scripts/benchmark_generate/aggregate_metrics.py"
