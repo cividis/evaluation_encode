@@ -7,14 +7,42 @@ configfile: "config/config.yaml"
 include: "rules/prepare_data.smk"
 include: "rules/motif_scan.smk"
 include: "rules/benchmark_search.smk"
+include: "rules/benchmark_generate.smk"
 
 
-query_experiments = pd.read_csv(config["benchmark_set"])["index_query"].unique()
+benchmark_df = pd.read_csv(config["benchmark_set"])
+query_experiments = benchmark_df["index_query"].unique()
+
+all_tfsage = expand(
+    expand(
+        config["results_dir"]
+        + "benchmark/generate/metrics/tfsage/head_{n}/{{query_id}}_{{target_id}}_{{factor}}.json",
+        n=[3, 7, 15],
+    ),
+    zip,
+    query_id=benchmark_df["index_query"],
+    target_id=benchmark_df["index_target"],
+    factor=benchmark_df["Experiment target"],
+)
+
+all_motif_scan = expand(
+    expand(
+        config["results_dir"]
+        + "benchmark/generate/metrics/motif_scan/{motif_db}/{{query_id}}_{{target_id}}_{{factor}}.json",
+        motif_db=config["motif_dbs"],
+    ),
+    zip,
+    query_id=benchmark_df["index_query"],
+    target_id=benchmark_df["index_target"],
+    factor=benchmark_df["Experiment target"],
+)
 
 
 rule all:
     input:
         config["results_dir"] + "benchmark/search.csv",
+        all_tfsage,
+        all_motif_scan,
         expand(
             config["results_dir"] + "motif_scan/{motif_db}/{experiment}.bed",
             experiment=query_experiments,
