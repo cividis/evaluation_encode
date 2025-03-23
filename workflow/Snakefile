@@ -17,7 +17,7 @@ all_tfsage = expand(
     expand(
         config["results_dir"]
         + "benchmark/generate/metrics/tfsage/head_{n}/{{query_id}}_{{target_id}}_{{factor}}.json",
-        n=[3, 7, 15],
+        n=[1, 3, 7, 15],
     ),
     zip,
     query_id=benchmark_df["index_query"],
