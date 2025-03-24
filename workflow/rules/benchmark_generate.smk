@@ -38,7 +38,7 @@ rule compute_metrics_tfsage:
         + "benchmark/generate/test_sets/{test_set_name}/{query_id}_{target_id}.parquet",
     output:
         config["results_dir"]
-        + "benchmark/generate/metrics/{test_set_name}/tfsage/head_{n}/{query_id}_{target_id}_{factor}.json",
+        + "benchmark/generate/metrics/{test_set_name}/tfsage/head_{n}/{query_id}_{factor}_{target_id}.json",
     params:
         method_class="tfsage",
         method_name=lambda w: f"TFSage-{w.n}",
@@ -60,7 +60,7 @@ rule compute_metrics_motif_scan:
         m2f_path="resources/motif_databases_filtered/{motif_db}_filtered.motif2factors.txt",
     output:
         config["results_dir"]
-        + "benchmark/generate/metrics/{test_set_name}/motif_scan/{motif_db}/{query_id}_{target_id}_{factor}.json",
+        + "benchmark/generate/metrics/{test_set_name}/motif_scan/{motif_db}/{query_id}_{factor}_{target_id}.json",
     params:
         method_class="motif scan",
         method_name="{motif_db}",
@@ -79,26 +79,26 @@ rule aggregate_metrics_generate:
         all_tfsage=expand(
             expand(
                 config["results_dir"]
-                + "benchmark/generate/metrics/{test_set_name}/tfsage/head_{n}/{{query_id}}_{{target_id}}_{{factor}}.json",
+                + "benchmark/generate/metrics/{test_set_name}/tfsage/head_{n}/{{query_id}}_{{factor}}_{{target_id}}.json",
                 n=config["tfsage_n"],
                 test_set_name=list(config["test_sets"].keys()),
             ),
             zip,
             query_id=benchmark_df["index_query"],
-            target_id=benchmark_df["index_target"],
             factor=benchmark_df["Experiment target"],
+            target_id=benchmark_df["index_target"],
         ),
         all_motif_scan=expand(
             expand(
                 config["results_dir"]
-                + "benchmark/generate/metrics/{test_set_name}/motif_scan/{motif_db}/{{query_id}}_{{target_id}}_{{factor}}.json",
+                + "benchmark/generate/metrics/{test_set_name}/motif_scan/{motif_db}/{{query_id}}_{{factor}}_{{target_id}}.json",
                 motif_db=config["motif_dbs"],
                 test_set_name=list(config["test_sets"].keys()),
             ),
             zip,
             query_id=benchmark_df["index_query"],
-            target_id=benchmark_df["index_target"],
             factor=benchmark_df["Experiment target"],
+            target_id=benchmark_df["index_target"],
         ),
     output:
         config["results_dir"] + "benchmark/generate.csv",
