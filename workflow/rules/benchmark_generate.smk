@@ -41,7 +41,13 @@ rule compute_metrics_tfsage:
         + "benchmark/generate/metrics/{test_set_name}/tfsage/head_{n}/{query_id}_{target_id}_{factor}.json",
     params:
         method_class="tfsage",
-        method_name=lambda w: f"tfsage-{w.n}",
+        method_name=lambda w: f"TFSage-{w.n}",
+        query_assay=lambda w: benchmark_df.query("index_query == @w.query_id").iloc[0][
+            "Assay_query"
+        ],
+        cell_type=lambda w: benchmark_df.query("index_query == @w.query_id").iloc[0][
+            "Biosample term name"
+        ],
     script:
         "../scripts/benchmark_generate/compute_classification_metrics.py"
 
@@ -58,6 +64,12 @@ rule compute_metrics_motif_scan:
     params:
         method_class="motif scan",
         method_name="{motif_db}",
+        query_assay=lambda w: benchmark_df.query("index_query == @w.query_id").iloc[0][
+            "Assay_query"
+        ],
+        cell_type=lambda w: benchmark_df.query("index_query == @w.query_id").iloc[0][
+            "Biosample term name"
+        ],
     script:
         "../scripts/benchmark_generate/compute_classification_metrics.py"
 

@@ -16,6 +16,8 @@ def compute_classification_metrics(
     factor,
     m2f_path,
     test_set_name,
+    query_assay,
+    cell_type,
 ):
     predictions = load_predictions(predictions_path, method_class, factor, m2f_path)
     test_set = pd.read_parquet(test_set_path)
@@ -43,6 +45,8 @@ def compute_classification_metrics(
         "method_class": method_class,
         "method_name": method_name,
         "query_id": query_id,
+        "query_assay": query_assay,
+        "cell_type": cell_type,
         "target_id": target_id,
         "factor": factor,
         "test_set": test_set_name,
@@ -99,4 +103,6 @@ compute_classification_metrics(
     snakemake.wildcards.factor,
     getattr(snakemake.input, "m2f_path", None),
     snakemake.wildcards.test_set_name,
+    snakemake.params.query_assay,
+    snakemake.params.cell_type,
 )
