@@ -85,8 +85,8 @@ rule aggregate_metrics_generate:
             ),
             zip,
             query_id=benchmark_df["index_query"],
-            factor=benchmark_df["Experiment target"],
             target_id=benchmark_df["index_target"],
+            factor=benchmark_df["Experiment target"],
         ),
         all_motif_scan=expand(
             expand(
@@ -97,8 +97,8 @@ rule aggregate_metrics_generate:
             ),
             zip,
             query_id=benchmark_df["index_query"],
-            factor=benchmark_df["Experiment target"],
             target_id=benchmark_df["index_target"],
+            factor=benchmark_df["Experiment target"],
         ),
     output:
         config["results_dir"] + "benchmark/generate.csv",
