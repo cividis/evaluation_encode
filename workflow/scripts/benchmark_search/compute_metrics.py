@@ -25,7 +25,7 @@ def generate_results(
     scoring_function: Callable,
 ) -> pd.DataFrame:
     results = []
-    for query_id, cell_type, factor in tqdm(
+    for query_id, query_assay, cell_type, factor in tqdm(
         benchmark_df.itertuples(index=False), total=len(benchmark_df)
     ):
         ranked_list = (
@@ -40,10 +40,11 @@ def generate_results(
             .assign(hit=lambda x: x["Biosample term name"] == cell_type)
         )
         metrics = ranked_list_metrics(ranked_list)
-        results.append([query_id, cell_type, factor, *metrics])
+        results.append([query_id, query_assay, cell_type, factor, *metrics])
 
     columns = [
         "query_id",
+        "query_assay",
         "cell_type",
         "factor",
         "reciprocal_rank",
@@ -54,7 +55,15 @@ def generate_results(
     return df
 
 
-def compute_metrics(distances_file, metadata_file, benchmark_file, output_file):
+def compute_metrics(
+    distances_file,
+    metadata_file,
+    benchmark_file,
+    output_file,
+    features,
+    method,
+    metric,
+):
     # Read distances
     distances_df = pd.read_parquet(distances_file)
 
@@ -72,13 +81,19 @@ def compute_metrics(distances_file, metadata_file, benchmark_file, output_file):
     benchmark_df = (
         pd.read_csv(benchmark_file)
         .filter(
-            items=["index_query", "Biosample term name", "Experiment target"],
+            items=[
+                "index_query",
+                "Assay_query",
+                "Biosample term name",
+                "Experiment target",
+            ],
             axis=1,
         )
         .drop_duplicates()
     )
 
     df = generate_results(distances_df, metadata, benchmark_df, scoring_function)
+    df = df.assign(features=features, method=method, metric=metric)
     df.to_csv(output_file, index=False)
 
 
@@ -87,4 +102,7 @@ compute_metrics(
     snakemake.input.metadata,
     snakemake.input.benchmark,
     snakemake.output[0],
+    snakemake.wildcards.features,
+    snakemake.wildcards.method,
+    snakemake.wildcards.metric,
 )
