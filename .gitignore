@@ -141,3 +141,4 @@ results/
 .snakemake/
 resources/motif_databases/
 test.py
+upload_box.sh
