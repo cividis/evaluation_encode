@@ -12,7 +12,7 @@ def ranked_list_metrics(ranked_list: pd.DataFrame) -> tuple:
         rank=lambda x: x["score"].rank(ascending=False),
         precision=lambda x: x["hit"].cumsum() / x["rank"],
     )
-    reciprocal_rank = 1 / ranked_list.query("hit")["rank"].values[0]
+    reciprocal_rank = 1 / ranked_list.query("hit")["rank"].min()
     average_precision = ranked_list.query("hit")["precision"].mean()
     ndcg_score = metrics.ndcg_score([ranked_list["hit"]], [ranked_list["score"]])
     return reciprocal_rank, average_precision, ndcg_score
@@ -36,7 +36,7 @@ def generate_results(
                 scoring_function=scoring_function,
             )
             .query("`Experiment target` == @factor")
-            .filter(["score", "Experiment target", "Biosample term name"], axis=1)
+            .filter(["score", "Biosample term name"], axis=1)
             .assign(hit=lambda x: x["Biosample term name"] == cell_type)
         )
         metrics = ranked_list_metrics(ranked_list)
@@ -73,7 +73,7 @@ def compute_metrics(
 
     # Read metadata
     metadata = pd.read_parquet(metadata_file).filter(
-        items=["Biosample term name", "Assay", "Experiment target"],
+        items=["Biosample term name", "Experiment target"],
         axis=1,
     )
 
