@@ -25,14 +25,14 @@ tfsage_n: [1, 3, 7, 15, 23, 31]
 test_sets:
   balanced:
     peak_width: 200
-    blacklist_chroms: ["chrM", "chrY"]
+    exclude_chroms: ["chrM", "chrY"]
     n_samples: 1000 # 500 positive, 500 negative
     p_positive: 0.5 # balanced
     random_state: 42
 
   severe:
     peak_width: 200
-    blacklist_chroms: ["chrM", "chrY"]
+    exclude_chroms: ["chrM", "chrY"]
     n_samples: 10000 # 500 positive, 9500 negative
     p_positive: 0.05 # severely imbalanced
     random_state: 42
